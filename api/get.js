@@ -1,27 +1,21 @@
 import { list } from '@vercel/blob';
 
-export const config = { runtime: 'edge' };
+export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
 
-const CORS = { 'Access-Control-Allow-Origin': '*' };
-
-export default async function handler(req) {
-  const id = new URL(req.url).searchParams.get('id');
-  if (!id) return new Response('Missing id', { status: 400, headers: CORS });
+  const { id } = req.query;
+  if (!id) return res.status(400).json({ error: 'Missing id' });
 
   try {
     const { blobs } = await list({ prefix: `shares/${id}.json`, limit: 1 });
-    if (!blobs.length) return new Response('Not found', { status: 404, headers: CORS });
+    if (!blobs.length) return res.status(404).json({ error: 'Not found' });
 
     const dataResp = await fetch(blobs[0].url);
-    if (!dataResp.ok) return new Response('Not found', { status: 404, headers: CORS });
+    if (!dataResp.ok) return res.status(404).json({ error: 'Not found' });
 
-    return new Response(await dataResp.text(), {
-      headers: { ...CORS, 'Content-Type': 'application/json' },
-    });
+    res.setHeader('Content-Type', 'application/json');
+    res.status(200).send(await dataResp.text());
   } catch (e) {
-    return new Response(JSON.stringify({ error: e.message }), {
-      status: 500,
-      headers: { ...CORS, 'Content-Type': 'application/json' },
-    });
+    res.status(500).json({ error: e.message });
   }
 }

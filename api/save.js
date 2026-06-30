@@ -1,19 +1,15 @@
 import { put } from '@vercel/blob';
 
-export const config = { runtime: 'edge' };
+export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
-
-export default async function handler(req) {
-  if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
-  if (req.method !== 'POST') return new Response('Method Not Allowed', { status: 405, headers: CORS });
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
   try {
-    const body = await req.text();
+    const body = JSON.stringify(req.body);
     const id = Math.random().toString(36).slice(2, 8);
 
     await put(`shares/${id}.json`, body, {
@@ -22,13 +18,8 @@ export default async function handler(req) {
       contentType: 'application/json',
     });
 
-    return new Response(JSON.stringify({ id }), {
-      headers: { ...CORS, 'Content-Type': 'application/json' },
-    });
+    res.status(200).json({ id });
   } catch (e) {
-    return new Response(JSON.stringify({ error: e.message }), {
-      status: 500,
-      headers: { ...CORS, 'Content-Type': 'application/json' },
-    });
+    res.status(500).json({ error: e.message });
   }
 }
