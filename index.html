@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#3B82F6">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="TabFlow">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="../icons/icon128.png">
+  <link rel="stylesheet" href="app.css">
+  <title>TabFlow</title>
+</head>
+<body>
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="topbar-logo">
+      <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
+        <rect width="20" height="20" rx="5" fill="#3B82F6"/>
+        <path d="M5 7h10M5 10h7M5 13h5" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      TabFlow
+    </div>
+    <button id="btn-import" class="topbar-btn" title="匯入集合">
+      <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
+        <path d="M10 3v11M6 10l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M3 16h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </header>
+
+  <!-- Search -->
+  <div class="search-bar">
+    <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <circle cx="7" cy="7" r="4.5" stroke="#94A3B8" stroke-width="1.5"/>
+      <path d="M10.5 10.5L14 14" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+    <input id="inp-search" class="inp-search" type="search" placeholder="搜尋集合或連結…" autocomplete="off" spellcheck="false">
+  </div>
+
+  <!-- Main -->
+  <main id="main">
+    <div id="collections-list"></div>
+    <div id="empty-state" class="empty-state hidden">
+      <div class="empty-icon">📂</div>
+      <p class="empty-msg">尚無集合</p>
+      <p class="empty-sub">點擊右下角 ＋ 新增第一個連結</p>
+    </div>
+  </main>
+
+  <!-- FAB -->
+  <button id="fab" aria-label="新增連結">＋</button>
+
+  <!-- Overlay backdrop -->
+  <div id="overlay" class="overlay"></div>
+
+  <!-- ── Sheet: Add URL ── -->
+  <div id="sheet-add" class="sheet">
+    <div class="sheet-inner">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">新增連結</div>
+      <div class="sheet-body">
+        <label class="field-label">網址 *</label>
+        <input id="inp-url" class="inp" type="url" placeholder="https://"
+               autocapitalize="none" autocorrect="off" spellcheck="false" inputmode="url">
+        <label class="field-label mt">標題（選填）</label>
+        <input id="inp-title" class="inp" type="text" placeholder="留空則使用網址">
+        <label class="field-label mt">加入集合</label>
+        <div id="col-picker" class="col-picker"></div>
+        <div id="inp-new-col-row" class="hidden mt">
+          <input id="inp-new-col" class="inp" type="text" placeholder="新集合名稱…">
+        </div>
+      </div>
+      <div class="sheet-footer">
+        <button id="btn-add-cancel" class="btn-ghost">取消</button>
+        <button id="btn-add-confirm" class="btn-primary">儲存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Sheet: Import ── -->
+  <div id="sheet-import" class="sheet">
+    <div class="sheet-inner">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">匯入集合</div>
+      <div class="sheet-body">
+        <label class="field-label">貼上 TabFlow 分享連結</label>
+        <textarea id="inp-import-url" class="inp inp-ta" rows="3"
+                  placeholder="https://…" spellcheck="false"></textarea>
+        <p class="field-hint">可以從電腦版 TabFlow 複製分享連結，匯入到手機</p>
+      </div>
+      <div class="sheet-footer">
+        <button id="btn-import-cancel" class="btn-ghost">取消</button>
+        <button id="btn-import-confirm" class="btn-primary">匯入</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Sheet: Collection actions ── -->
+  <div id="sheet-actions" class="sheet">
+    <div class="sheet-inner">
+      <div class="sheet-handle"></div>
+      <div id="sheet-actions-title" class="sheet-col-name"></div>
+      <div class="action-list">
+        <button class="action-item" data-action="add-url">
+          <span class="ai">＋</span> 加入連結到此集合
+        </button>
+        <button class="action-item" data-action="share">
+          <span class="ai">🔗</span> 分享集合
+        </button>
+        <button class="action-item" data-action="categorize">
+          <span class="ai">📂</span> 簡單分類
+        </button>
+        <button class="action-item" data-action="dedup">
+          <span class="ai">✨</span> 去除重複
+        </button>
+        <button class="action-item" data-action="rename">
+          <span class="ai">✏️</span> 重新命名
+        </button>
+        <button class="action-item danger" data-action="delete">
+          <span class="ai">🗑</span> 刪除集合
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Sheet: Categorize ── -->
+  <div id="sheet-categorize" class="sheet">
+    <div class="sheet-inner">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">簡單分類</div>
+      <div id="sheet-cat-body" class="sheet-body cat-body"></div>
+      <input type="hidden" id="sheet-cat-col-id">
+      <div class="sheet-footer">
+        <button id="btn-cat-close" class="btn-ghost">關閉</button>
+        <button id="btn-cat-save" class="btn-primary">全部存為獨立集合</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
