@@ -76,9 +76,10 @@
     }
 
     async function decodeHash(hash) {
-      // Try compressed (new format) first, then fall back to old base64 format
+      // Try compressed (new format, URL-safe base64) first, then fall back to old base64 format
       try {
-        const bytes = Uint8Array.from(atob(hash), c => c.charCodeAt(0));
+        const b64 = hash.replace(/-/g, '+').replace(/_/g, '/');
+        const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
         const ds = new DecompressionStream('deflate-raw');
         const writer = ds.writable.getWriter();
         writer.write(bytes);
@@ -116,7 +117,7 @@
             </svg>
             一口氣展開所有分頁（${tabs.length} 個）
           </button>
-          <p class="note">⚠ 瀏覽器可能封鎖彈出視窗，如未全部開啟請允許此頁面的彈出視窗後再試</p>
+          <p class="note">⚠ 瀏覽器可能封鎖彈出視窗，如未全部開啟請允許此頁面的彈出視窗後再試。桌機版可透過 TabFlow 擴充功能「以群組開啟」，手機版不支援群組功能。</p>
           <div class="tab-list">
             ${tabs.map(t => `
               <a class="tab-item" href="${esc(t.url)}" target="_blank" rel="noopener noreferrer">
