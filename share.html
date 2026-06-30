@@ -93,21 +93,9 @@
 
     (async () => {
       try {
-        const params = new URLSearchParams(location.search);
-        const shareId = params.get('id');
         const hash = location.hash.slice(1);
-
-        let data;
-        if (shareId) {
-          const resp = await fetch(`/api/get?id=${encodeURIComponent(shareId)}`);
-          if (resp.status === 404) throw new Error('expired');
-          if (!resp.ok) throw new Error('fetch');
-          data = await resp.json();
-        } else if (hash) {
-          data = await decodeHash(hash);
-        } else {
-          throw new Error('empty');
-        }
+        if (!hash) throw new Error('empty');
+        const data = await decodeHash(hash);
 
         if (data.expiresAt && Date.now() > data.expiresAt) throw new Error('expired');
 
