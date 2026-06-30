@@ -13,18 +13,18 @@ export default async function handler(req) {
   try {
     const body = await req.text();
     const id = Math.random().toString(36).slice(2, 8);
-    const ttl = 31 * 24 * 60 * 60; // 31 days
 
-    const r = await fetch(`${process.env.KV_REST_API_URL}/pipeline`, {
-      method: 'POST',
+    const r = await fetch(`https://blob.vercel-storage.com/shares/${id}.json`, {
+      method: 'PUT',
       headers: {
-        Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}`,
+        'x-content-type': 'application/json',
+        'x-add-random-suffix': '0',
       },
-      body: JSON.stringify([['SET', `share:${id}`, body, 'EX', ttl]]),
+      body,
     });
 
-    if (!r.ok) throw new Error(`KV error: ${r.status}`);
+    if (!r.ok) throw new Error(`Blob PUT failed: ${r.status}`);
 
     return new Response(JSON.stringify({ id }), {
       headers: { ...CORS, 'Content-Type': 'application/json' },

@@ -6,14 +6,18 @@ export default async function handler(req) {
   const id = new URL(req.url).searchParams.get('id');
   if (!id) return new Response('Missing id', { status: 400, headers: CORS });
 
-  const r = await fetch(`${process.env.KV_REST_API_URL}/get/share:${id}`, {
-    headers: { Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}` },
-  });
+  // List blobs with prefix to find the public URL
+  const listResp = await fetch(
+    `https://blob.vercel-storage.com/?prefix=shares/${id}.json&limit=1`,
+    { headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` } }
+  );
+  const { blobs } = await listResp.json();
+  if (!blobs?.length) return new Response('Not found', { status: 404, headers: CORS });
 
-  const { result } = await r.json();
-  if (!result) return new Response('Not found', { status: 404, headers: CORS });
+  const dataResp = await fetch(blobs[0].url);
+  if (!dataResp.ok) return new Response('Not found', { status: 404, headers: CORS });
 
-  return new Response(result, {
+  return new Response(await dataResp.text(), {
     headers: { ...CORS, 'Content-Type': 'application/json' },
   });
 }
