@@ -1,3 +1,5 @@
+import { put } from '@vercel/blob';
+
 export const config = { runtime: 'edge' };
 
 const CORS = {
@@ -14,17 +16,11 @@ export default async function handler(req) {
     const body = await req.text();
     const id = Math.random().toString(36).slice(2, 8);
 
-    const r = await fetch(`https://blob.vercel-storage.com/shares/${id}.json`, {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}`,
-        'x-content-type': 'application/json',
-        'x-add-random-suffix': '0',
-      },
-      body,
+    await put(`shares/${id}.json`, body, {
+      access: 'public',
+      addRandomSuffix: false,
+      contentType: 'application/json',
     });
-
-    if (!r.ok) throw new Error(`Blob PUT failed: ${r.status}`);
 
     return new Response(JSON.stringify({ id }), {
       headers: { ...CORS, 'Content-Type': 'application/json' },
