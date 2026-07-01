@@ -10,6 +10,7 @@ export default async function handler(req, res) {
     const body = JSON.stringify(req.body);
     const id = Math.random().toString(36).slice(2, 8);
     const token = process.env.BLOB_READ_WRITE_TOKEN;
+    console.log('[save] called, id:', id, 'token present:', !!token);
 
     const r = await fetch(`https://blob.vercel-storage.com/shares/${id}.json`, {
       method: 'PUT',
@@ -24,8 +25,10 @@ export default async function handler(req, res) {
 
     if (!r.ok) {
       const errText = await r.text();
+      console.log('[save] blob error:', r.status, errText);
       return res.status(500).json({ error: `Blob ${r.status}: ${errText}` });
     }
+    console.log('[save] success, id:', id);
 
     res.status(200).json({ id });
   } catch (e) {
