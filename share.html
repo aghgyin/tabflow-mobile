@@ -60,6 +60,10 @@
   </div>
 
   <script>
+    function fmtDate(ts) {
+      const d = new Date(ts);
+      return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+    }
     function esc(s) {
       return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
@@ -121,7 +125,7 @@
         const app = document.getElementById('app');
         app.innerHTML = `
           <div class="col-name">${esc(data.name || '集合')}</div>
-          <div class="col-meta">${tabs.length} 個連結</div>
+          <div class="col-meta">${tabs.length} 個連結${data.expiresAt ? ` ‧ 有效至 ${fmtDate(data.expiresAt)}` : ''}</div>
           ${noteHtml}
           <button class="btn-open-all" id="btnOpenAll">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
